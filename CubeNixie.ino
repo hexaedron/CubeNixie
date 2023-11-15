@@ -1,6 +1,7 @@
 #include "settings.h"
 #include "Timer3Pin2PWM.h"
 #include <WDT.h>
+#include <I2C_eeprom.h>
 
 #include "swRTC2000.h"
 #include <RtcUtility.h>
@@ -15,9 +16,13 @@
 #define SCREEN_DIGITS_NUM 4
 #include "lib7SegmentScreenShifted.h"
 
+#include "MoscowSetRise.h"
+#include "simpleTimer.h"
+
 swRTC2000 rtc;
 char datetime[] = "0000";
 byte shiftBytes[5] = {'\0'};
+I2C_eeprom EEPROM(0b1010000, I2C_DEVICESIZE_24LC02); //Все адресные ножки 24LC02 подключаем к земле, это даёт нам адрес 0b1010000 или 0x50
 
 #ifdef IV9_NIXIE
   char* segBytes;
@@ -29,13 +34,16 @@ void setup()
   initTimer3Pin2PWM_32_2000(95, 75);
   wdt_enable(WTO_1S);
 
+  EEPROMValuesInit();
+
   #ifdef DEBUG_ENABLE
     Serial.begin(115200);
   #endif
   
-  pinMode(DATA, OUTPUT);
-  pinMode(LATCH, OUTPUT);
-  pinMode(CLOCK, OUTPUT);
+  pinMode(DATA,    OUTPUT);
+  pinMode(LATCH,   OUTPUT);
+  pinMode(CLOCK,   OUTPUT);
+  pinMode(SW_DOTS, OUTPUT);
 
   rtc.stopRTC();
     rtc.setDate(17, 12, 2023);
@@ -45,33 +53,79 @@ void setup()
 
 void loop() 
 {
-  
+  uint8_t hour = rtc.getHours();
+  uint8_t minute = rtc.getMinutes();
+  uint8_t second = rtc.getSeconds();
+  bool minRefreshFlag = true;
+  bool dotRefreshFlag = true;
+  Timer16 clockTimer(500);
+
   for(;;)
   {
-    IV9Screen.renderBytes(datetime);
-    IV9Screen.mutate(IV9_MUTATION);
-    segBytes = IV9Screen.getRawBytes();
-    populateIV9(segBytes, shiftBytes);
-    
-    //Serial.print((byte)shiftBytes[0], BIN);
-    //Serial.print(' ');
-    //Serial.print((byte)shiftBytes[1], BIN);
-    //Serial.print(' ');
-    //Serial.print((byte)shiftBytes[2], BIN);
-    //Serial.print(' ');
-    //Serial.print((byte)shiftBytes[3], BIN);
-    //Serial.print(' ');
-    //Serial.println((byte)shiftBytes[4], BIN);
-
-    delay(500);
-    digitalWrite(LATCH, LOW);
-    for (int i = 0; i < 5; i++)
+    if(clockTimer.ready())
     {
-      shiftOut(DATA, CLOCK, LSBFIRST, shiftBytes);
+      hour   = rtc.getHours();
+      minute = rtc.getMinutes();
+      second = rtc.getSeconds();
     }
-    digitalWrite(LATCH, HIGH);
-    
+
+    if(((second % 2) && dotRefreshFlag))
+    {
+      analogWrite(SW_DOTS, DOTS_BRIGHTNESS);
+      makeDateTimeScreen(datetime, rtc.getHours(), rtc.getMinutes());
+      DEBUG("TIME = ", datetime);
+      DEBUG("DOTS = ", "ON");
+      IV9Screen.renderBytes(datetime);
+      IV9Screen.mutate(IV9_MUTATION);
+      segBytes = IV9Screen.getRawBytes();
+      populateIV9(segBytes, shiftBytes);
+      dotRefreshFlag = !dotRefreshFlag;
+
+      digitalWrite(LATCH, LOW);
+      for (int i = 0; i < 5; i++)
+      {
+        shiftOut(DATA, CLOCK, LSBFIRST, shiftBytes);
+      }
+    }
+    else if((!(second % 2)) && !dotRefreshFlag)
+    {
+      analogWrite(SW_DOTS, 255);
+      makeDateTimeScreen(datetime, rtc.getHours(), rtc.getMinutes());
+      DEBUG("TIME = ", datetime);
+      DEBUG("DOTS = ", "OFF");
+      IV9Screen.renderBytes(datetime);
+      IV9Screen.mutate(IV9_MUTATION);
+      segBytes = IV9Screen.getRawBytes();
+      populateIV9(segBytes, shiftBytes);
+      dotRefreshFlag = !dotRefreshFlag;
+
+      digitalWrite(LATCH, LOW);
+      for (int i = 0; i < 5; i++)
+      {
+        shiftOut(DATA, CLOCK, LSBFIRST, shiftBytes);
+      }
+    }
+
+    if(minute % 5 ) 
+    {
+      if(minRefreshFlag)
+      {
+        adjustTime(getGMTOffset());
+        minRefreshFlag = false;
+        setTimer3Pin2PWMDuty(calculateBrightness());
+      }
+    }
+
     wdt_reset();
   }
+}
 
+void adjustTime(uint32_t GMTSecondsOffset)
+{
+
+}
+
+uint8_t calculateBrightness()
+{
+  return getDayBrightness();
 }
