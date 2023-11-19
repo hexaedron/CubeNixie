@@ -89,7 +89,7 @@ void sevenSegmentScreenShifted::renderBytes(const char* text)
     byte i = 0;
     byte digitNum = 0;
 
-    // text should not be empty or start with ".". If it does, that's definetly an user's mistake,
+    // text should not be empty or start with ".". If it does, that's definetly a user's mistake,
     // so we clear the screen and exit.
     if((text[0] == '.') || (text[0] == '\0'))
     {
@@ -101,6 +101,7 @@ void sevenSegmentScreenShifted::renderBytes(const char* text)
     do
     { 
         this->displaySegmentBytes[digitNum] = pgm_read_byte(&numberSegmentsFont[0]); // Set digit to blank space in case there is an unprintable char
+
         for (byte j = 0; j < this->charSearchStringLength; j++)
         {            
             if (text[i] == '.')
@@ -123,11 +124,11 @@ void sevenSegmentScreenShifted::renderBytes(const char* text)
         i++;
     } while ((text[i] != '\0') || (digitNum < this->numDigits));
 
-    for(byte j = 0; j < this->charSearchStringLength; j++)
+    if (this->commonPin == COMMON_CATHODE)
     {
-      if (this->commonPin == COMMON_CATHODE)
+      for(byte j = 0; j < this->charSearchStringLength; j++)
       {
-          this->displaySegmentBytes[j] = ~this->displaySegmentBytes[j];
+        this->displaySegmentBytes[j] = ~this->displaySegmentBytes[j];
       }
     }
 }
@@ -175,15 +176,15 @@ byte* sevenSegmentScreenShifted::getRawBytes(void)
 // Perform a mutaion on all or only on a selected digit
 void sevenSegmentScreenShifted::mutate(const char* newPattern, uint8_t digit = 255)
 {
-  byte tmpByte;
+  byte tmpByte = 0;
   for (uint8_t i = 0; i < this->numDigits; i++)
   {
     if((digit == 255) || (digit == i)) 
     {
       uint8_t j;
-      for(j = 0; j < 8; j++)
+      for(j = 1; j <= 8; j++)
       {
-        bitWrite(tmpByte, (uint8_t)newPattern[j] - 49, bitRead(this->displaySegmentBytes[i], j)); // We substract 49 here to avoid using atoi()
+        bitWrite(tmpByte, (uint8_t)newPattern[j] - 47, bitRead(this->displaySegmentBytes[i], j)); // We substract 47 here to avoid using atoi()
       }
       this->displaySegmentBytes[i] = tmpByte;
     }

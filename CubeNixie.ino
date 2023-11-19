@@ -9,11 +9,12 @@
 
 #ifdef FAST_SHIFT_OUT
   #include <FastShiftOut.h>
-  #define shiftOut(DATA_PIN, CLOCK, ORDER, VALUE) FSO.write(VALUE)
   FastShiftOut FSO(DATA, CLOCK, LSBFIRST);
+  #define shiftOut(DATA_PIN, CLOCK, ORDER, VALUE) FSO.write(VALUE)
 #endif
 
 #define SCREEN_DIGITS_NUM 4
+#define NUMBERS_ONLY
 #include "lib7SegmentScreenShifted.h"
 
 #include "MoscowSetRise.h"
@@ -25,7 +26,7 @@ byte shiftBytes[5] = {'\0'};
 I2C_eeprom EEPROM(0b1010000, I2C_DEVICESIZE_24LC02); //Все адресные ножки 24LC02 подключаем к земле, это даёт нам адрес 0b1010000 или 0x50
 
 #ifdef IV9_NIXIE
-  char* segBytes;
+  byte* segBytes;
   sevenSegmentScreenShifted IV9Screen(LATCH, DATA, CLOCK, COMMON_CATHODE);
 #endif
 
@@ -73,8 +74,6 @@ void loop()
     {
       analogWrite(SW_DOTS, DOTS_BRIGHTNESS);
       makeDateTimeScreen(datetime, rtc.getHours(), rtc.getMinutes());
-      DEBUG("TIME = ", datetime);
-      DEBUG("DOTS = ", "ON");
       IV9Screen.renderBytes(datetime);
       IV9Screen.mutate(IV9_MUTATION);
       segBytes = IV9Screen.getRawBytes();
@@ -82,17 +81,16 @@ void loop()
       dotRefreshFlag = !dotRefreshFlag;
 
       digitalWrite(LATCH, LOW);
-      for (int i = 0; i < 5; i++)
+      for (int8_t i = 4; i >= 0; i--)
       {
-        shiftOut(DATA, CLOCK, LSBFIRST, shiftBytes);
+        shiftOut(DATA, CLOCK, LSBFIRST, shiftBytes[i]);
       }
+      digitalWrite(LATCH, HIGH);
     }
     else if((!(second % 2)) && !dotRefreshFlag)
     {
       analogWrite(SW_DOTS, 255);
       makeDateTimeScreen(datetime, rtc.getHours(), rtc.getMinutes());
-      DEBUG("TIME = ", datetime);
-      DEBUG("DOTS = ", "OFF");
       IV9Screen.renderBytes(datetime);
       IV9Screen.mutate(IV9_MUTATION);
       segBytes = IV9Screen.getRawBytes();
@@ -100,10 +98,11 @@ void loop()
       dotRefreshFlag = !dotRefreshFlag;
 
       digitalWrite(LATCH, LOW);
-      for (int i = 0; i < 5; i++)
+      for (int8_t i = 4; i >= 0; i--)
       {
-        shiftOut(DATA, CLOCK, LSBFIRST, shiftBytes);
+        shiftOut(DATA, CLOCK, LSBFIRST, shiftBytes[i]);
       }
+      digitalWrite(LATCH, HIGH);
     }
 
     if(minute % 5 ) 

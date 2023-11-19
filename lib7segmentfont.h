@@ -23,7 +23,7 @@
     #define  FONT_ARRAY_LENGTH_RAW 70
     #define  FONT_ARRAY_LENGTH (FONT_ARRAY_LENGTH_RAW - UNPRINTABLE_CHARS_FULL)
     const PROGMEM byte numberSegmentsFont[FONT_ARRAY_LENGTH] = 
-    {
+    { 
         0b11111111, // SPACE
         0b11111101, // - (minus sign)
         0b11111110, // . Dot (DP)
