@@ -9,7 +9,7 @@
 
 #ifdef FAST_SHIFT_OUT
   #include <FastShiftOut.h>
-  FastShiftOut FSO(DATA, CLOCK, LSBFIRST);
+  FastShiftOut FSO(DATA, CLOCK, MSBFIRST);
   #define shiftOut(DATA_PIN, CLOCK, ORDER, VALUE) FSO.write(VALUE)
 #endif
 
@@ -114,7 +114,6 @@ void loop()
         setTimer3Pin2PWMDuty(calculateBrightness());
       }
     }
-
     wdt_reset();
   }
 }
