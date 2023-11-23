@@ -9,7 +9,7 @@
 
 #ifdef FAST_SHIFT_OUT
   #include <FastShiftOut.h>
-  FastShiftOut FSO(DATA, CLOCK, MSBFIRST);
+  FastShiftOut FSO(DATA, CLOCK, LSBFIRST);
   #define shiftOut(DATA_PIN, CLOCK, ORDER, VALUE) FSO.write(VALUE)
 #endif
 

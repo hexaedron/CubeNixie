@@ -30,7 +30,7 @@
 #define SOFT_GPS_BAUD_RATE 9600
 #define USE_SOFT_RTC
 #define IV9_NIXIE
-#define IV9_MUTATION "05476213"
+#define IV9_MUTATION "72301564" 
 
 #ifdef DEBUG_ENABLE
   #define DEBUG(msg, x) Serial.print(msg); Serial.println(x)

@@ -176,19 +176,6 @@ byte* sevenSegmentScreenShifted::getRawBytes(void)
 // Perform a mutaion on all or only on a selected digit
 void sevenSegmentScreenShifted::mutate(const char* newPattern, uint8_t digit = 255)
 {
-  //byte tmpByte = 0;
-  //for (uint8_t i = 0; i < this->numDigits; i++)
-  //{
-  //  if((digit == 255) || (digit == i)) 
-  //  {
-  //    uint8_t j;
-  //    for(j = 1; j <= 8; j++)
-  //    {
-  //      bitWrite(tmpByte, (uint8_t)newPattern[j] - 47, bitRead(this->displaySegmentBytes[i], j)); // We substract 47 here to avoid using atoi()
-  //    }
-  //    this->displaySegmentBytes[i] = tmpByte;
-  //  }
-  //} 
   byte tmpByte = 0;
   for (uint8_t i = 0; i < this->numDigits; i++)
   {
