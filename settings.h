@@ -13,7 +13,9 @@
 #define GMT_OFFSET_MINUTES_EEPROM_ADDRESS (uint16_t)3
 #define DEFAULT_BRIGHTNESS 50 
 #define NIGHT_BRIGHTNESS 30
-#define DOTS_BRIGHTNESS 50
+#define DOTS_DAY_BRIGHTNESS 100
+#define DOTS_NIGHT_BRIGHTNESS 50
+#define DOTS_OFF 0
 #define INIT_ADDR 1023  // номер резервной ячейки
 #define INIT_KEY 67     // ключ первого запуска. 0-254, на выбор
 #define SOFT_RTC_DELTA_T 1210 // Компенсация отставаний софт часов
@@ -53,6 +55,7 @@ void populateIV9(byte* segBytes, byte* shiftBytes);
 
 void adjustTime(uint32_t GMTSecondsOffset);
 uint8_t calculateBrightness();
+uint8_t calculateDotsBrightness();
 
 uint8_t getDayBrightness(void);
 void setDayBrightness(uint8_t dayBrightness);

@@ -72,7 +72,7 @@ void loop()
 
     if(((second % 2) && dotRefreshFlag))
     {
-      analogWrite(SW_DOTS, DOTS_BRIGHTNESS);
+      analogWrite(SW_DOTS, calculateDotsBrightness());
       makeDateTimeScreen(datetime, rtc.getHours(), rtc.getMinutes());
       IV9Screen.renderBytes(datetime);
       IV9Screen.mutate(IV9_MUTATION);
@@ -89,13 +89,16 @@ void loop()
     }
     else if((!(second % 2)) && !dotRefreshFlag)
     {
-      analogWrite(SW_DOTS, 255);
+      analogWrite(SW_DOTS, DOTS_OFF);
       makeDateTimeScreen(datetime, rtc.getHours(), rtc.getMinutes());
       IV9Screen.renderBytes(datetime);
       IV9Screen.mutate(IV9_MUTATION);
       segBytes = IV9Screen.getRawBytes();
       populateIV9(segBytes, shiftBytes);
       dotRefreshFlag = !dotRefreshFlag;
+
+      DEBUG("datetime = ", datetime);
+      DEBUG_BIN("shiftBytes[0] = ", shiftBytes[0]);
 
       digitalWrite(LATCH, LOW);
       for (int8_t i = 4; i >= 0; i--)
@@ -126,4 +129,9 @@ void adjustTime(uint32_t GMTSecondsOffset)
 uint8_t calculateBrightness()
 {
   return getDayBrightness();
+}
+
+uint8_t calculateDotsBrightness()
+{
+  return DOTS_DAY_BRIGHTNESS;
 }
