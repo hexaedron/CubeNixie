@@ -4,6 +4,27 @@
 
 extern I2C_eeprom EEPROM;
 
+
+uint8_t getDayDotsBrightness(void)
+{
+    return EEPROM.readByte(DOTS_DEFAULT_BRIGHTNESS_EEPROM_ADDRESS);
+}
+
+void setDayDotsBrightness(uint8_t dayBrightness)
+{
+    EEPROM.updateByte(DOTS_DEFAULT_BRIGHTNESS_EEPROM_ADDRESS, dayBrightness);
+}
+
+uint8_t getNightDotsBrightness(void)
+{
+    return EEPROM.readByte(DOTS_NIGHT_BRIGHTNESS_EEPROM_ADDRESS);
+}
+
+void setNightDotsBrightness(uint8_t nightBrightness)
+{
+    EEPROM.updateByte(DOTS_NIGHT_BRIGHTNESS_EEPROM_ADDRESS, nightBrightness);
+}
+
 uint8_t getDayBrightness(void)
 {
     return EEPROM.readByte(DEFAULT_BRIGHTNESS_EEPROM_ADDRESS);
@@ -50,5 +71,7 @@ void EEPROMValuesInit(bool force = false)
     setDayBrightness(DEFAULT_BRIGHTNESS);
     setNightBrightness(NIGHT_BRIGHTNESS);
     setGMTOffset(GMT_SECONDS_OFFSET);
+    setDayDotsBrightness(DOTS_DAY_BRIGHTNESS);
+    setNightDotsBrightness(DOTS_NIGHT_BRIGHTNESS);
   }
 }

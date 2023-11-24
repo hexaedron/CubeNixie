@@ -19,6 +19,7 @@ unsigned long swRTC2000::getTimestamp2000(void)
 	//One revolution of the Earth is not 365 days but accurately 365.2422 days.
 	//It is leap year that adjusts this decimal fraction. But...
 	time += (getYear() - yearT) * 365UL + (getYear() - yearT) * 2422UL / 10000UL;
+  //time += (getYear() - yearT) * 365.2422;
 	for (byte i = 0; i < getMonth() - 1; i++)
   {
 		time += daysPerMonth[i]; //find day from month

@@ -26,18 +26,19 @@
 #include "MoscowSetRise.h"
 #include "simpleTimer.h"
 
-swRTC2000 rtc;
-char datetime[] = "0000";
-byte shiftBytes[5] = {'\0'};
-I2C_eeprom EEPROM(0b1010000, I2C_DEVICESIZE_24LC02); //Все адресные ножки 24LC02 подключаем к земле, это даёт нам адрес 0b1010000 или 0x50
-brightness Brightness = {0, 0};
-byte mac[6] = 
-{
-  0x66, 0xAA, GUID0, GUID1, GUID2, GUID3
-}; // MAC-адрес будет формироваться уникальный для каждого чипа
+// Устройства
+swRTC2000 rtc; 
 EthernetClient client;
 EthernetUDP ntpUDP;
 NTPClient timeClient(ntpUDP, IPAddress(192,168,1,1));
+I2C_eeprom EEPROM(0b1010000, I2C_DEVICESIZE_24LC02); //Все адресные ножки 24LC02 подключаем к земле, это даёт нам адрес 0b1010000 или 0x50
+
+// Буферы
+char datetime[] = "0000";
+byte shiftBytes[5] = {'\0'};
+brightness Brightness = {0, 0};
+byte mac[6] = {0x66, 0xAA, GUID0, GUID1, GUID2, GUID3}; // MAC-адрес будет формироваться уникальный для каждого чипа
+
 
 #ifdef IV9_NIXIE
   byte* segBytes;
@@ -46,6 +47,7 @@ NTPClient timeClient(ntpUDP, IPAddress(192,168,1,1));
 
 void setup() 
 {
+  // Сразу поставим небольшую яркость и включим вотчдог, чтобы не пожечь лампы от 5В
   initTimer3Pin2PWM_32_2000(95, 75);
   wdt_enable(WTO_1S);
 
@@ -60,13 +62,23 @@ void setup()
   pinMode(CLOCK,   OUTPUT);
   pinMode(SW_DOTS, OUTPUT);
 
-  // Получим адрес по DHCP
-  if (Ethernet.begin(mac) == 0) 
+  // Получим адрес по DHCP. Пока получаем, рисуем анимацию
+  while (Ethernet.begin(mac) == 0) 
   {
-    Serial.println("Failed to configure Ethernet using DHCP");
-    // no point in carrying on, so do nothing forevermore:
-    for (;;)
-      ;
+    uint8_t i = 0;
+    uint8_t j = 1;
+
+    for(i = 0; i < j; i++)
+    {
+      datetime[i] = '.';
+    }
+
+    j++;
+    if(j > 4) j = 1;
+    datetime[i] = '\0';
+    print_IV_9();
+    
+    delay(500);
   }
 
   // В начале обновляем время до упора. Пока идёт обновление, показываем растущую линию из точек.
@@ -87,6 +99,10 @@ void setup()
     
     delay(500);
   }
+
+
+  calculateBrightness();
+  setTimer3Pin2PWMDuty(Brightness.screen);
 }
 
 void loop() 
@@ -97,8 +113,6 @@ void loop()
   bool minRefreshFlag = true;
   bool dotRefreshFlag = true;
   Timer16 clockTimer(500);
-  
-  calculateBrightness();
 
   for(;;)
   {
@@ -124,6 +138,11 @@ void loop()
       makeDateTimeScreen(datetime, hour, minute);
       print_IV_9();
       dotRefreshFlag = !dotRefreshFlag;
+
+      DEBUG("Timestamp2000     = ", rtc.getTimestamp2000());
+      DEBUG("Timestamp         = ", rtc.getTimestamp());
+      DEBUG("Screen Brightness = ", Brightness.screen);
+      DEBUG("Dots Brightness   = ", Brightness.dots);
     }
 
     if(minute % 5 ) 
@@ -158,6 +177,7 @@ void print_IV_9()
   digitalWrite(LATCH, HIGH);
 }
 
+// Подводит время по NTP
 bool adjustTime(uint32_t GMTSecondsOffset)
 {
   if(timeClient.update())
@@ -172,13 +192,11 @@ bool adjustTime(uint32_t GMTSecondsOffset)
   }
 
   return false;
-
 }
 
-
+// вычисляет яркость точек и самого экрана
 void calculateBrightness()
 {
-  
   RtcDateTime timeNow(rtc.getYear(), rtc.getMonth(), rtc.getDay(), rtc.getHours(), rtc.getMinutes(), rtc.getSeconds());
   uint32_t    timeSet  = RtcDateTime(timeNow.Year(), timeNow.Month(), timeNow.Day(), 0, 0 ,0).TotalSeconds() + (uint32_t)getMoscowSunset(timeNow.Month(), timeNow.Day()) * 60; 
   uint32_t    timeRise = RtcDateTime(timeNow.Year(), timeNow.Month(), timeNow.Day(), 0, 0 ,0).TotalSeconds() + (uint32_t)getMoscowSunrise(timeNow.Month(), timeNow.Day()) * 60; 
@@ -187,12 +205,12 @@ void calculateBrightness()
   {
     DEBUG("calculateBrightness(): ", "It's a day!");
     Brightness.screen = getDayBrightness();
-    Brightness.dots   = DOTS_DAY_BRIGHTNESS;
+    Brightness.dots   = getDayDotsBrightness();
   }
   else
   {
     DEBUG("calculateBrightness(): ", "It's a night!");
     Brightness.screen = getNightBrightness();
-    Brightness.dots   = DOTS_NIGHT_BRIGHTNESS;
+    Brightness.dots   = getNightDotsBrightness();
   }
 }

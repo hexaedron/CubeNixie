@@ -11,13 +11,15 @@
 #define NIGHT_BRIGHTNESS_EEPROM_ADDRESS (uint16_t)1
 #define GMT_OFFSET_HOURS_EEPROM_ADDRESS (uint16_t)2
 #define GMT_OFFSET_MINUTES_EEPROM_ADDRESS (uint16_t)3
+#define DOTS_NIGHT_BRIGHTNESS_EEPROM_ADDRESS (uint16_t)4
+#define DOTS_DEFAULT_BRIGHTNESS_EEPROM_ADDRESS (uint16_t)5
 #define DEFAULT_BRIGHTNESS 50 
 #define NIGHT_BRIGHTNESS 30
 #define DOTS_DAY_BRIGHTNESS 100
 #define DOTS_NIGHT_BRIGHTNESS 50
 #define DOTS_OFF 0
 #define INIT_ADDR 1023  // номер резервной ячейки
-#define INIT_KEY 67     // ключ первого запуска. 0-254, на выбор
+#define INIT_KEY 66     // ключ первого запуска. 0-254, на выбор
 
 
 // Это на случай, если координаты не подгрузились
@@ -64,6 +66,10 @@ uint8_t getNightBrightness(void);
 void setNightBrightness(uint8_t nightBrightness);
 void setGMTOffset(uint32_t offset);
 int32_t getGMTOffset(void);
+uint8_t getDayDotsBrightness(void);
+void setDayDotsBrightness(uint8_t dayBrightness);
+uint8_t getNightDotsBrightness(void);
+void setNightDotsBrightness(uint8_t nightBrightness);
 void EEPROMValuesInit(bool force = false);
 
 uint16_t getMoscowSunrise(uint8_t month, uint8_t day);
