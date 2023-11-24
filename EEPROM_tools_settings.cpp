@@ -30,14 +30,14 @@ void setGMTOffset(uint32_t offset)
     EEPROM.updateByte(GMT_OFFSET_MINUTES_EEPROM_ADDRESS, (uint8_t)(offset / 60 % 60));
 }
 
-uint8_t getGMTOffset(void)
+int32_t getGMTOffset(void)
 {
-    uint8_t seconds = EEPROM.readByte(GMT_OFFSET_MINUTES_EEPROM_ADDRESS) * 60;
+    int32_t seconds = (int32_t)EEPROM.readByte(GMT_OFFSET_MINUTES_EEPROM_ADDRESS) * 60;
     if (!(seconds % 15))
     {
       seconds = seconds % 15;
     }
-    return EEPROM.readByte(GMT_OFFSET_HOURS_EEPROM_ADDRESS) * 60 * 60 + seconds;
+    return (int32_t)EEPROM.readByte(GMT_OFFSET_HOURS_EEPROM_ADDRESS) * 60 * 60 + seconds;
 }
 
 void EEPROMValuesInit(bool force = false)
