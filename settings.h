@@ -1,9 +1,9 @@
 #pragma once
 
-#define CLOCK      A1   //SH_CP 
+#define CLOCK      A1    //SH_CP 
 #define DATA       A3    //DS   
 #define LATCH      A2    //ST_CP 
-#define PWM         2   // 
+#define PWM         2    // 
 #define SW_DOTS     9
 
 #define GMT_SECONDS_OFFSET (3 * 60 * 60) // Московское время +3 часа по умолчанию
@@ -28,9 +28,7 @@
 
 #define DEBUG_ENABLE // Для включения отладки раскомментировать
 #define FAST_SHIFT_OUT
-//#define NEED_GPS_SETUP
 #define NUMBERS_ONLY // Для экрана
-//#define USE_SOFT_SERIAL
 #define USE_SOFT_RTC
 #define IV9_NIXIE
 #define IV9_MUTATION "72301564" 

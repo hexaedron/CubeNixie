@@ -28,7 +28,7 @@
 
 // Устройства
 swRTC2000 rtc; 
-EthernetClient client;
+//EthernetClient client;
 EthernetUDP ntpUDP;
 NTPClient timeClient(ntpUDP, IPAddress(192,168,1,1));
 I2C_eeprom EEPROM(0b1010000, I2C_DEVICESIZE_24LC02); //Все адресные ножки 24LC02 подключаем к земле, это даёт нам адрес 0b1010000 или 0x50
@@ -37,7 +37,7 @@ I2C_eeprom EEPROM(0b1010000, I2C_DEVICESIZE_24LC02); //Все адресные �
 char datetime[] = "0000";
 byte shiftBytes[5] = {'\0'};
 brightness Brightness = {0, 0};
-byte mac[6] = {0x66, 0xAA, GUID0, GUID1, GUID2, GUID3}; // MAC-адрес будет формироваться уникальный для каждого чипа
+byte mac[6] = {0x66, 0xAA, (uint8_t)&GUID0, (uint8_t)&GUID1, (uint8_t)&GUID2, (uint8_t)&GUID3}; // MAC-адрес будет формироваться уникальный для каждого чипа
 
 
 #ifdef IV9_NIXIE
@@ -104,7 +104,7 @@ void setup()
   }
   INFO("NTP ok!");
 
-  wdt_enable(WTO_1S); // Ставим вотчдог. К сожалению, DHCP и прочая хрень блокирующая.
+  wdt_enable(WTO_2S); // Ставим вотчдог. К сожалению, DHCP и прочая хрень блокирующая.
   calculateBrightness();
   setTimer3Pin2PWMDuty(Brightness.screen);
 }
@@ -117,6 +117,10 @@ void loop()
   bool minRefreshFlag = true;
   bool dotRefreshFlag = true;
   Timer16 clockTimer(500);
+  
+  // Это время в минутах, прибавляемое к периоду обновления NTP, 
+  // чтобы девайсы не дёргали NTP сервер одновременно.
+  uint8_t minAdd = (uint8_t)map((uint32_t)&GUID0, 0, 0xFFFFFFFF, 1, 10);
 
   for(;;)
   {
@@ -149,7 +153,7 @@ void loop()
       DEBUG("Dots Brightness   = ", Brightness.dots);
     }
 
-    if(minute % 5 ) 
+    if(minute % (3 + minAdd)) 
     {
       if(minRefreshFlag)
       {
