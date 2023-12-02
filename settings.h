@@ -34,14 +34,16 @@
 #define USE_SOFT_RTC
 #define IV9_NIXIE
 #define IV9_MUTATION "72301564" 
-#define UNIX_2000_OFFSET 946684800
+#define UNIX_2000_OFFSET 946684800UL
 
 #ifdef DEBUG_ENABLE
   #define DEBUG(msg, x) Serial.print(msg); Serial.println(x)
-  #define DEBUG_BIN(msg, x) Serial.print(msg); Serial.println((x), BIN) 
+  #define DEBUG_BIN(msg, x) Serial.print(msg); Serial.println((x), BIN)
+  #define INFO(x) Serial.print(F("INFO: ")); Serial.println(x)
 #else
   #define DEBUG(msg, x)
   #define DEBUG_BIN(msg, x)
+  #define INFO(x)
 #endif
 
 typedef struct brightness

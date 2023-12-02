@@ -47,9 +47,8 @@ byte mac[6] = {0x66, 0xAA, GUID0, GUID1, GUID2, GUID3}; // MAC-адрес буд
 
 void setup() 
 {
-  // Сразу поставим небольшую яркость и включим вотчдог, чтобы не пожечь лампы от 5В
-  initTimer3Pin2PWM_32_2000(95, 75);
-  wdt_enable(WTO_1S);
+  // Сразу поставим небольшую яркость, чтобы не пожечь лампы от 5В
+  initTimer3Pin2PWM_32_2000(95, 50);
 
   EEPROMValuesInit();
 
@@ -62,9 +61,11 @@ void setup()
   pinMode(CLOCK,   OUTPUT);
   pinMode(SW_DOTS, OUTPUT);
 
+  INFO("Start DHCP");
   // Получим адрес по DHCP. Пока получаем, рисуем анимацию
   while (Ethernet.begin(mac) == 0) 
   {
+    wdt_reset();
     uint8_t i = 0;
     uint8_t j = 1;
 
@@ -80,7 +81,9 @@ void setup()
     
     delay(500);
   }
+  INFO("DHCP ok!");
 
+  INFO("Start NTP");
   // В начале обновляем время до упора. Пока идёт обновление, показываем растущую линию из точек.
   while(!adjustTime(getGMTOffset()))
   {
@@ -99,8 +102,9 @@ void setup()
     
     delay(500);
   }
+  INFO("NTP ok!");
 
-
+  wdt_enable(WTO_1S); // Ставим вотчдог. К сожалению, DHCP и прочая хрень блокирующая.
   calculateBrightness();
   setTimer3Pin2PWMDuty(Brightness.screen);
 }
@@ -183,7 +187,7 @@ bool adjustTime(uint32_t GMTSecondsOffset)
   if(timeClient.update())
   {
     timeClient.setTimeOffset(GMTSecondsOffset);
-    RtcDateTime dt(timeClient.getEpochTime() + UNIX_2000_OFFSET);
+    RtcDateTime dt(timeClient.getEpochTime() - UNIX_2000_OFFSET);
     rtc.stopRTC();
       rtc.setDate(dt.Day(), dt.Month(), dt.Year());
       rtc.setTime(dt.Hour(), dt.Minute(), dt.Second());
