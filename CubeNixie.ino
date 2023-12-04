@@ -30,7 +30,7 @@
 swRTC2000 rtc; 
 //EthernetClient client;
 EthernetUDP ntpUDP;
-NTPClient timeClient(ntpUDP, IPAddress(192,168,1,1));
+NTPClient timeClient(ntpUDP);
 I2C_eeprom EEPROM(0b1010000, I2C_DEVICESIZE_24LC02); //Все адресные ножки 24LC02 подключаем к земле, это даёт нам адрес 0b1010000 или 0x50
 
 // Буферы
@@ -52,6 +52,10 @@ void setup()
   wdt_enable(WTO_1S); // Ставим вотчдог. пришлось допилить либу Ethernet, воткнув в неё wdt_reset() в блокирующих местах
 
   EEPROMValuesInit();
+
+  // Получим IP-адрес из EEPROM и выставим его на клиенте
+  IPAddress poolServerIP(getIPAddress());
+  timeClient.setPoolServerAdddress(poolServerIP);
 
   #ifdef DEBUG_ENABLE
     Serial.begin(115200);

@@ -179,6 +179,12 @@ void NTPClient::setUpdateInterval(unsigned long updateInterval) {
   this->_updateInterval = updateInterval;
 }
 
+void NTPClient::setPoolServerAdddress(IPAddress poolServerIP) 
+{
+  this->_poolServerIP   = poolServerIP;
+  this->_poolServerName = NULL;
+}
+
 void NTPClient::setPoolServerName(const char* poolServerName) {
     this->_poolServerName = poolServerName;
 }
