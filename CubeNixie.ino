@@ -3,11 +3,11 @@
 #include <WDT.h>
 #include <I2C_eeprom.h>
 
-#include <NTPClient.h>
+#include "NTPClient.h"
 #define W5500_ETHERNET_SHIELD
-#include <SPI.h>
-#include <Ethernet.h>
-#include <EthernetUdp.h>
+#include "SPI.h"
+#include "Ethernet.h"
+#include "EthernetUdp.h"
 
 #include "swRTC2000.h"
 #include <RtcUtility.h>
@@ -49,6 +49,7 @@ void setup()
 {
   // Сразу поставим небольшую яркость, чтобы не пожечь лампы от 5В
   initTimer3Pin2PWM_32_2000(95, 50);
+  wdt_enable(WTO_1S); // Ставим вотчдог. пришлось допилить либу Ethernet, воткнув в неё wdt_reset() в блокирующих местах
 
   EEPROMValuesInit();
 
@@ -79,7 +80,9 @@ void setup()
     datetime[i] = '\0';
     print_IV_9();
     
+    wdt_reset();
     delay(500);
+    wdt_reset();
   }
   INFO("DHCP ok!");
 
@@ -100,11 +103,12 @@ void setup()
     datetime[i] = '\0';
     print_IV_9();
     
+    wdt_reset();
     delay(500);
+    wdt_reset();
   }
   INFO("NTP ok!");
 
-  wdt_enable(WTO_2S); // Ставим вотчдог. К сожалению, DHCP и прочая хрень блокирующая.
   calculateBrightness();
   setTimer3Pin2PWMDuty(Brightness.screen);
 }
