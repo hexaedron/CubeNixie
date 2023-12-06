@@ -37,7 +37,7 @@ I2C_eeprom EEPROM(0b1010000, I2C_DEVICESIZE_24LC02); //Все адресные �
 char datetime[] = "0000";
 byte shiftBytes[5] = {'\0'};
 brightness Brightness = {0, 0};
-byte mac[6] = {0x66, 0xAA, (uint8_t)&GUID0, (uint8_t)&GUID1, (uint8_t)&GUID2, (uint8_t)&GUID3}; // MAC-адрес будет формироваться уникальный для каждого чипа
+byte mac[6] = {0x66, 0xAA, (uint8_t &)GUID0, (uint8_t &)GUID1, (uint8_t &) GUID2, (uint8_t &)GUID3}; // MAC-адрес будет формироваться уникальный для каждого чипа
 
 
 #ifdef IV9_NIXIE
@@ -51,15 +51,21 @@ void setup()
   initTimer3Pin2PWM_32_2000(95, 50);
   wdt_enable(WTO_1S); // Ставим вотчдог. пришлось допилить либу Ethernet, воткнув в неё wdt_reset() в блокирующих местах
 
+  #ifdef DEBUG_ENABLE
+    Serial.begin(115200);
+    wdt_reset();
+    INFO("Starting");
+  #endif
+
+  INFO("EEPROM");
   EEPROMValuesInit();
+  INFO("EEPROM ok!");
 
   // Получим IP-адрес из EEPROM и выставим его на клиенте
   IPAddress poolServerIP(getIPAddress());
+  DEBUG("IP = ", getIPAddress());
   timeClient.setPoolServerAdddress(poolServerIP);
-
-  #ifdef DEBUG_ENABLE
-    Serial.begin(115200);
-  #endif
+  DEBUG("poolServerIP = ",poolServerIP);
   
   pinMode(DATA,    OUTPUT);
   pinMode(LATCH,   OUTPUT);
@@ -72,7 +78,7 @@ void setup()
   {
     wdt_reset();
     uint8_t i = 0;
-    uint8_t j = 1;
+    static uint8_t j = 1;
 
     for(i = 0; i < j; i++)
     {
@@ -95,7 +101,7 @@ void setup()
   while(!adjustTime(getGMTOffset()))
   {
     uint8_t i = 0;
-    uint8_t j = 1;
+    static uint8_t j = 1;
 
     for(i = 0; i < j; i++)
     {
@@ -113,8 +119,10 @@ void setup()
   }
   INFO("NTP ok!");
 
+  wdt_reset();
   calculateBrightness();
   setTimer3Pin2PWMDuty(Brightness.screen);
+  wdt_reset();
 }
 
 void loop() 
@@ -206,7 +214,7 @@ bool adjustTime(uint32_t GMTSecondsOffset)
     rtc.startRTC();
     return true;
   }
-
+  
   return false;
 }
 
@@ -214,9 +222,13 @@ bool adjustTime(uint32_t GMTSecondsOffset)
 void calculateBrightness()
 {
   RtcDateTime timeNow(rtc.getYear(), rtc.getMonth(), rtc.getDay(), rtc.getHours(), rtc.getMinutes(), rtc.getSeconds());
-  uint32_t    timeSet  = RtcDateTime(timeNow.Year(), timeNow.Month(), timeNow.Day(), 0, 0 ,0).TotalSeconds() + (uint32_t)getMoscowSunset(timeNow.Month(), timeNow.Day()) * 60; 
-  uint32_t    timeRise = RtcDateTime(timeNow.Year(), timeNow.Month(), timeNow.Day(), 0, 0 ,0).TotalSeconds() + (uint32_t)getMoscowSunrise(timeNow.Month(), timeNow.Day()) * 60; 
+  uint32_t    timeSet  = RtcDateTime(timeNow.Year(), timeNow.Month(), timeNow.Day(), 0, 0 ,0).TotalSeconds() + 
+                          (uint32_t)getMoscowSunset(timeNow.Month(), timeNow.Day()) * 60 + getGMTOffset(); 
+  uint32_t    timeRise = RtcDateTime(timeNow.Year(), timeNow.Month(), timeNow.Day(), 0, 0 ,0).TotalSeconds() + 
+                          (uint32_t)getMoscowSunrise(timeNow.Month(), timeNow.Day()) * 60 + getGMTOffset(); 
   
+  wdt_reset();
+
   if((timeNow.TotalSeconds() > timeRise) && (timeNow.TotalSeconds() < timeSet)) // День, поскольку мы между закатом и рассветом
   {
     DEBUG("calculateBrightness(): ", "It's a day!");

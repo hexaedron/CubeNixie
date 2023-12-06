@@ -64,10 +64,10 @@ const uint16_t MoscowSunsetSunrise[12][31][2] PROGMEM =
 
 uint16_t getMoscowSunrise(uint8_t month, uint8_t day)
 {
-  return MoscowSunsetSunrise[month - 1][day - 1][0];
+  return pgm_read_word(&MoscowSunsetSunrise[month - 1][day - 1][0]);
 }
 
 uint16_t getMoscowSunset(uint8_t month, uint8_t day)
 {
-  return MoscowSunsetSunrise[month - 1][day - 1][1];
+  return pgm_read_word(&MoscowSunsetSunrise[month - 1][day - 1][1]);
 }

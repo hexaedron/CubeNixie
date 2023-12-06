@@ -96,6 +96,7 @@ bool NTPClient::forceUpdate() {
   byte timeout = 0;
   int cb = 0;
   do {
+    wdt_reset();
     delay ( 10 );
     cb = this->_udp->parsePacket();
     if (timeout > 100) return false; // timeout after 1000 ms

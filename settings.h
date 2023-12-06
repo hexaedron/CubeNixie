@@ -14,13 +14,13 @@
 #define DOTS_NIGHT_BRIGHTNESS_EEPROM_ADDRESS (uint16_t)4
 #define DOTS_DEFAULT_BRIGHTNESS_EEPROM_ADDRESS (uint16_t)5
 #define DEFAULT_IP_ADDRESS_ADDRESS (uint16_t)6
-#define DEFAULT_IP_ADDRESS 0xc0a80101UL //192.168.1.1
+#define DEFAULT_IP_ADDRESS 0x0101A8C0UL //192.168.1.1
 #define DEFAULT_BRIGHTNESS 50 
 #define NIGHT_BRIGHTNESS 30
 #define DOTS_DAY_BRIGHTNESS 100
 #define DOTS_NIGHT_BRIGHTNESS 50
 #define DOTS_OFF 0
-#define INIT_ADDR 1023  // номер резервной ячейки
+#define INIT_ADDR 512  // номер резервной ячейки
 #define INIT_KEY 67     // ключ первого запуска. 0-254, на выбор
 
 
@@ -73,6 +73,7 @@ void setDayDotsBrightness(uint8_t dayBrightness);
 uint8_t getNightDotsBrightness(void);
 void setNightDotsBrightness(uint8_t nightBrightness);
 uint32_t getIPAddress(void);
+void setIPAddress(uint32_t address);
 void EEPROMValuesInit(bool force = false);
 
 uint16_t getMoscowSunrise(uint8_t month, uint8_t day);

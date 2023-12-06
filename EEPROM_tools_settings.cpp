@@ -64,8 +64,13 @@ int32_t getGMTOffset(void)
 uint32_t getIPAddress(void)
 {
     uint32_t address; 
-    EEPROM.readBlock(DEFAULT_IP_ADDRESS_ADDRESS, (uint8_t *)address, sizeof(address));
+    EEPROM.readBlock(DEFAULT_IP_ADDRESS_ADDRESS, (uint8_t *)&address, sizeof(address));
     return address;
+}
+
+void setIPAddress(uint32_t address)
+{ 
+    EEPROM.updateBlock(DEFAULT_IP_ADDRESS_ADDRESS, (uint8_t *)&address, sizeof(address));
 }
 
 void EEPROMValuesInit(bool force = false)
@@ -80,5 +85,6 @@ void EEPROMValuesInit(bool force = false)
     setGMTOffset(GMT_SECONDS_OFFSET);
     setDayDotsBrightness(DOTS_DAY_BRIGHTNESS);
     setNightDotsBrightness(DOTS_NIGHT_BRIGHTNESS);
+    setIPAddress(DEFAULT_IP_ADDRESS);
   }
 }
