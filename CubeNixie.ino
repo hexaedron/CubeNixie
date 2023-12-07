@@ -58,7 +58,7 @@ void setup()
   #endif
 
   INFO("EEPROM");
-  EEPROMValuesInit();
+    EEPROMValuesInit();
   INFO("EEPROM ok!");
 
   // Получим IP-адрес из EEPROM и выставим его на клиенте
@@ -71,6 +71,8 @@ void setup()
   pinMode(LATCH,   OUTPUT);
   pinMode(CLOCK,   OUTPUT);
   pinMode(SW_DOTS, OUTPUT);
+
+  wdt_reset();
 
   INFO("Start DHCP");
   // Получим адрес по DHCP. Пока получаем, рисуем анимацию
@@ -136,10 +138,12 @@ void loop()
   
   // Это время в минутах, прибавляемое к периоду обновления NTP, 
   // чтобы девайсы не дёргали NTP сервер одновременно.
-  uint8_t minAdd = (uint8_t)map((uint32_t)&GUID0, 0, 0xFFFFFFFF, 1, 10);
+  uint8_t minAdd = (uint8_t)map((uint32_t &)GUID0, 0, 0xFFFFFFFF, 1, 10);
 
   for(;;)
   {
+    wdt_reset();
+    
     if(clockTimer.ready())
     {
       hour   = rtc.getHours();
@@ -188,22 +192,26 @@ void loop()
 // Подготавливает и заполняет ИВ-9
 void print_IV_9()
 {
+  wdt_reset();
+
   IV9Screen.renderBytes(datetime);
   IV9Screen.mutate(IV9_MUTATION);
   segBytes = IV9Screen.getRawBytes();
   populateIV9(segBytes, shiftBytes);
 
   digitalWrite(LATCH, LOW);
-  for (int8_t i = 4; i >= 0; i--)
-  {
-    shiftOut(DATA, CLOCK, LSBFIRST, shiftBytes[i]);
-  }
+    for (int8_t i = 4; i >= 0; i--)
+    {
+      shiftOut(DATA, CLOCK, LSBFIRST, shiftBytes[i]);
+    }
   digitalWrite(LATCH, HIGH);
 }
 
 // Подводит время по NTP
 bool adjustTime(uint32_t GMTSecondsOffset)
 {
+  wdt_reset();
+  
   if(timeClient.update())
   {
     timeClient.setTimeOffset(GMTSecondsOffset);
