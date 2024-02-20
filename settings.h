@@ -28,7 +28,7 @@
 #define DEFAULT_SUNRISE_TIME (9 * 60)
 #define DEFAULT_SUNSET_TIME (20 * 60)
 
-#define DEBUG_ENABLE // Для включения отладки раскомментировать
+//#define DEBUG_ENABLE // Для включения отладки раскомментировать
 #define FAST_SHIFT_OUT
 #define NUMBERS_ONLY // Для экрана
 #define USE_SOFT_RTC

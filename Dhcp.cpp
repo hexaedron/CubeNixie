@@ -20,6 +20,7 @@ int DhcpClass::beginWithDHCP(uint8_t *mac, unsigned long timeout, unsigned long 
 
 	memcpy((void*)_dhcpMacAddr, (void*)mac, 6);
 	_dhcp_state = STATE_DHCP_START;
+  wdt_reset();
 	return request_DHCP_lease();
 }
 
@@ -38,7 +39,8 @@ int DhcpClass::request_DHCP_lease()
 	_dhcpTransactionId = random(1UL, 2000UL);
 	_dhcpInitialTransactionId = _dhcpTransactionId;
 
-	_dhcpUdpSocket.stop();
+	wdt_reset();
+  _dhcpUdpSocket.stop();
 	if (_dhcpUdpSocket.begin(DHCP_CLIENT_PORT) == 0) {
 		// Couldn't get a socket
 		return 0;

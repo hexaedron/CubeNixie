@@ -58,12 +58,14 @@ void setup()
   #endif
 
   INFO("EEPROM");
+    wdt_reset();
     EEPROMValuesInit();
   INFO("EEPROM ok!");
 
   // Получим IP-адрес из EEPROM и выставим его на клиенте
   IPAddress poolServerIP(getIPAddress());
   DEBUG("IP = ", getIPAddress());
+  wdt_reset();
   timeClient.setPoolServerAdddress(poolServerIP);
   DEBUG("poolServerIP = ",poolServerIP);
   

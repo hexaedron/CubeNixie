@@ -32,17 +32,20 @@ int EthernetClass::begin(uint8_t *mac, unsigned long timeout, unsigned long resp
 	_dhcp = &s_dhcp;
 
 	// Initialise the basic info
+  wdt_reset();
 	if (W5100.init() == 0) return 0;
 	SPI.beginTransaction(SPI_ETHERNET_SETTINGS);
 	W5100.setMACAddress(mac);
 	W5100.setIPAddress(IPAddress(0,0,0,0).raw_address());
 	SPI.endTransaction();
+  wdt_reset();
 
 	// Now try to get our config info from a DHCP server
 	int ret = _dhcp->beginWithDHCP(mac, timeout, responseTimeout);
 	if (ret == 1) {
 		// We've successfully found a DHCP server and got our configuration
 		// info, so set things accordingly
+    wdt_reset();
 		SPI.beginTransaction(SPI_ETHERNET_SETTINGS);
 		W5100.setIPAddress(_dhcp->getLocalIp().raw_address());
 		W5100.setGatewayIp(_dhcp->getGatewayIp().raw_address());
@@ -50,6 +53,7 @@ int EthernetClass::begin(uint8_t *mac, unsigned long timeout, unsigned long resp
 		SPI.endTransaction();
 		_dnsServerAddress = _dhcp->getDnsServerIp();
 		socketPortRand(micros());
+    wdt_reset();
 	}
 	return ret;
 }
