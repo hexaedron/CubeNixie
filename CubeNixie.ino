@@ -49,7 +49,7 @@ void setup()
 {
   // Сразу поставим небольшую яркость, чтобы не пожечь лампы от 5В
   initTimer3Pin2PWM_32_2000(95, 50);
-  wdt_enable(WTO_1S); // Ставим вотчдог. пришлось допилить либу Ethernet, воткнув в неё wdt_reset() в блокирующих местах
+  wdt_enable(WTO_4S); // Ставим вотчдог. пришлось допилить либу Ethernet, воткнув в неё wdt_reset() в блокирующих местах
 
   #ifdef DEBUG_ENABLE
     Serial.begin(115200);
