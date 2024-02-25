@@ -30,7 +30,6 @@
 
 //#define DEBUG_ENABLE // Для включения отладки раскомментировать
 #define FAST_SHIFT_OUT
-#define NUMBERS_ONLY // Для экрана
 #define USE_SOFT_RTC
 #define IV9_NIXIE
 #define IV9_MUTATION "72301564" 
