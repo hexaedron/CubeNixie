@@ -35,7 +35,7 @@ I2C_eeprom EEPROM(0b1010000, I2C_DEVICESIZE_24LC02); //Все адресные �
 // Буферы
 char datetime[] = "0000";
 byte shiftBytes[5] = {'\0'};
-brightness Brightness = {0, 0};
+brightness Brightness = {50, 50};
 byte mac[6] = {0x66, 0xAA, (uint8_t &)GUID0, (uint8_t &)GUID1, (uint8_t &) GUID2, (uint8_t &)GUID3}; // MAC-адрес будет формироваться уникальный для каждого чипа
 
 
