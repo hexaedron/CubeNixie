@@ -185,6 +185,10 @@ void loop()
         setTimer3Pin2PWMDuty(Brightness.screen);
       }
     }
+    else
+    {
+      minRefreshFlag = true;
+    }
     wdt_reset();
   }
 }
