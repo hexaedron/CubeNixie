@@ -47,7 +47,7 @@ byte mac[6] = {0x66, 0xAA, (uint8_t &)GUID0, (uint8_t &)GUID1, (uint8_t &) GUID2
 void setup() 
 {
   // Сразу поставим небольшую яркость, чтобы не пожечь лампы от 5В
-  initTimer3Pin2PWM_32_2000(95, 25);
+  initTimer3Pin2PWM_32_2000(95, 75);
   wdt_enable(WTO_4S); // Ставим вотчдог. пришлось допилить либу Ethernet, воткнув в неё wdt_reset() в блокирующих местах
 
   #ifdef DEBUG_ENABLE
