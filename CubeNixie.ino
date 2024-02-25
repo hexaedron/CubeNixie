@@ -20,7 +20,6 @@
 #endif
 
 #define SCREEN_DIGITS_NUM 4
-#define NUMBERS_ONLY
 #include "lib7SegmentScreenShifted.h"
 
 #include "MoscowSetRise.h"
@@ -48,7 +47,7 @@ byte mac[6] = {0x66, 0xAA, (uint8_t &)GUID0, (uint8_t &)GUID1, (uint8_t &) GUID2
 void setup() 
 {
   // Сразу поставим небольшую яркость, чтобы не пожечь лампы от 5В
-  initTimer3Pin2PWM_32_2000(95, 50);
+  initTimer3Pin2PWM_32_2000(95, 25);
   wdt_enable(WTO_4S); // Ставим вотчдог. пришлось допилить либу Ethernet, воткнув в неё wdt_reset() в блокирующих местах
 
   #ifdef DEBUG_ENABLE
@@ -77,48 +76,27 @@ void setup()
   wdt_reset();
 
   INFO("Start DHCP");
-  // Получим адрес по DHCP. Пока получаем, рисуем анимацию
+  // Получим адрес по DHCP. 
+  datetime[0] = 'D';
+  datetime[1] = 'H';
+  datetime[2] = 'C';
+  datetime[3] = 'P';
+  print_IV_9();
   while (Ethernet.begin(mac) == 0) 
   {
-    wdt_reset();
-    uint8_t i = 0;
-    static uint8_t j = 1;
-
-    for(i = 0; i < j; i++)
-    {
-      datetime[i] = '.';
-    }
-
-    j++;
-    if(j > 4) j = 1;
-    datetime[i] = '\0';
-    print_IV_9();
-    
-    wdt_reset();
-    delay(500);
     wdt_reset();
   }
   INFO("DHCP ok!");
 
   INFO("Start NTP");
-  // В начале обновляем время до упора. Пока идёт обновление, показываем растущую линию из точек.
+  // В начале обновляем время до упора. 
+  datetime[0] = 'N';
+  datetime[1] = 'T';
+  datetime[2] = 'P';
+  datetime[3] = '\0';
+  print_IV_9();
   while(!adjustTime(getGMTOffset()))
   {
-    uint8_t i = 0;
-    static uint8_t j = 1;
-
-    for(i = 0; i < j; i++)
-    {
-      datetime[i] = '.';
-    }
-
-    j++;
-    if(j > 4) j = 1;
-    datetime[i] = '\0';
-    print_IV_9();
-    
-    wdt_reset();
-    delay(500);
     wdt_reset();
   }
   INFO("NTP ok!");
