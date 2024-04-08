@@ -214,10 +214,10 @@ bool adjustTime(uint32_t GMTSecondsOffset)
 void calculateBrightness()
 {
   RtcDateTime timeNow(rtc.getYear(), rtc.getMonth(), rtc.getDay(), rtc.getHours(), rtc.getMinutes(), rtc.getSeconds());
-  uint32_t    timeSet  = RtcDateTime(timeNow.Year(), timeNow.Month(), timeNow.Day(), 0, 0 ,0).TotalSeconds() + 
-                          (uint32_t)getMoscowSunset(timeNow.Month(), timeNow.Day()) * 60 + getGMTOffset(); 
-  uint32_t    timeRise = RtcDateTime(timeNow.Year(), timeNow.Month(), timeNow.Day(), 0, 0 ,0).TotalSeconds() + 
-                          (uint32_t)getMoscowSunrise(timeNow.Month(), timeNow.Day()) * 60 + getGMTOffset(); 
+  uint32_t    timeSet  = RtcDateTime(timeNow.Year(), timeNow.Month(), timeNow.Day(), 0, 0, 0).TotalSeconds() + 
+                          (uint32_t)getMoscowSunset(timeNow.Month(), timeNow.Day()) * 60UL + getGMTOffset(); 
+  uint32_t    timeRise = RtcDateTime(timeNow.Year(), timeNow.Month(), timeNow.Day(), 0, 0, 0).TotalSeconds() + 
+                          (uint32_t)getMoscowSunrise(timeNow.Month(), timeNow.Day()) * 60UL + getGMTOffset(); 
   
   wdt_reset();
 

@@ -51,14 +51,14 @@ void setGMTOffset(uint32_t offset)
     EEPROM.updateByte(GMT_OFFSET_MINUTES_EEPROM_ADDRESS, (uint8_t)(offset / 60 % 60));
 }
 
-int32_t getGMTOffset(void)
+uint32_t getGMTOffset(void)
 {
-    int32_t seconds = (int32_t)EEPROM.readByte(GMT_OFFSET_MINUTES_EEPROM_ADDRESS) * 60;
+    uint32_t seconds = (uint32_t)EEPROM.readByte(GMT_OFFSET_MINUTES_EEPROM_ADDRESS) * 60UL;
     if (!(seconds % 15))
     {
       seconds = seconds % 15;
     }
-    return (int32_t)EEPROM.readByte(GMT_OFFSET_HOURS_EEPROM_ADDRESS) * 60 * 60 + seconds;
+    return (uint32_t)EEPROM.readByte(GMT_OFFSET_HOURS_EEPROM_ADDRESS) * 60UL * 60UL + seconds;
 }
 
 uint32_t getIPAddress(void)

@@ -66,7 +66,7 @@ void setDayBrightness(uint8_t dayBrightness);
 uint8_t getNightBrightness(void);
 void setNightBrightness(uint8_t nightBrightness);
 void setGMTOffset(uint32_t offset);
-int32_t getGMTOffset(void);
+uint32_t getGMTOffset(void);
 uint8_t getDayDotsBrightness(void);
 void setDayDotsBrightness(uint8_t dayBrightness);
 uint8_t getNightDotsBrightness(void);
