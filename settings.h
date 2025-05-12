@@ -5,6 +5,8 @@
 #define LATCH      A2    //ST_CP 
 #define PWM         2    // 
 #define SW_DOTS     9
+#define TX_PIN     11    // MOSI
+#define RX_PIN     12    // MISO
 
 #define GMT_SECONDS_OFFSET (3 * 60 * 60) // Московское время +3 часа по умолчанию
 #define DEFAULT_BRIGHTNESS_EEPROM_ADDRESS (uint16_t)0 
@@ -22,11 +24,15 @@
 #define DOTS_OFF 0
 #define INIT_ADDR 512  // номер резервной ячейки
 #define INIT_KEY 67     // ключ первого запуска. 0-254, на выбор
+#define SOFT_GPS_BAUD_RATE 9600
+#define SOFT_RTC_DELTA_T 1210
 
 
 // Это на случай, если координаты не подгрузились
 #define DEFAULT_SUNRISE_TIME (9 * 60)
 #define DEFAULT_SUNSET_TIME (20 * 60)
+
+#define GPS_TIME_IS_VALID() (ATGM332D.time.isValid() && (ATGM332D.date.year() >= 2025))
 
 //#define DEBUG_ENABLE // Для включения отладки раскомментировать
 #define FAST_SHIFT_OUT

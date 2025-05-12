@@ -3,11 +3,9 @@
 #include <WDT.h>
 #include <I2C_eeprom.h>
 
-#include "NTPClient.h"
-#define W5500_ETHERNET_SHIELD
-#include "SPI.h"
-#include "Ethernet.h"
-#include "EthernetUdp.h"
+#include <TinyGPS++.h>
+
+#include <PostNeoSWSerial.h>
 
 #include "swRTC2000.h"
 #include <RtcUtility.h>
@@ -27,16 +25,18 @@
 
 // Устройства
 swRTC2000 rtc; 
-//EthernetClient client;
-EthernetUDP ntpUDP;
-NTPClient timeClient(ntpUDP);
+PostNeoSWSerial GPS_SoftSerial(RX_PIN, TX_PIN);
 I2C_eeprom EEPROM(0b1010000, I2C_DEVICESIZE_24LC02); //Все адресные ножки 24LC02 подключаем к земле, это даёт нам адрес 0b1010000 или 0x50
+TinyGPSPlus   ATGM332D;
+TinyGPSCustom ATGM332D_year(ATGM332D,  "GNZDA", 4);
+TinyGPSCustom ATGM332D_month(ATGM332D, "GNZDA", 3);
+TinyGPSCustom ATGM332D_day(ATGM332D,   "GNZDA", 2);
+
 
 // Буферы
 char datetime[] = "0000";
 byte shiftBytes[5] = {'\0'};
 brightness Brightness = {50, 50};
-byte mac[6] = {0x66, 0xAA, (uint8_t &)GUID0, (uint8_t &)GUID1, (uint8_t &) GUID2, (uint8_t &)GUID3}; // MAC-адрес будет формироваться уникальный для каждого чипа
 
 
 #ifdef IV9_NIXIE
@@ -48,7 +48,7 @@ void setup()
 {
   // Сразу поставим небольшую яркость, чтобы не пожечь лампы от 5В
   initTimer3Pin2PWM_32_2000(95, 75);
-  wdt_enable(WTO_4S); // Ставим вотчдог. пришлось допилить либу Ethernet, воткнув в неё wdt_reset() в блокирующих местах
+  wdt_enable(WTO_16S); // Ставим вотчдог. пришлось допилить либу Ethernet, воткнув в неё wdt_reset() в блокирующих местах
 
   #ifdef DEBUG_ENABLE
     Serial.begin(115200);
@@ -61,45 +61,51 @@ void setup()
     EEPROMValuesInit();
   INFO("EEPROM ok!");
 
-  // Получим IP-адрес из EEPROM и выставим его на клиенте
-  IPAddress poolServerIP(getIPAddress());
-  DEBUG("IP = ", getIPAddress());
-  wdt_reset();
-  timeClient.setPoolServerAdddress(poolServerIP);
-  DEBUG("poolServerIP = ",poolServerIP);
   
   pinMode(DATA,    OUTPUT);
   pinMode(LATCH,   OUTPUT);
   pinMode(CLOCK,   OUTPUT);
   pinMode(SW_DOTS, OUTPUT);
+  pinMode(TX_PIN,     OUTPUT);
+  pinMode(RX_PIN,      INPUT);
 
   wdt_reset();
 
-  INFO("Start DHCP");
+  INFO("Start GPS");
   // Получим адрес по DHCP. 
-  datetime[0] = 'D';
-  datetime[1] = 'H';
-  datetime[2] = 'C';
-  datetime[3] = 'P';
-  print_IV_9();
-  while (Ethernet.begin(mac) == 0) 
-  {
-    wdt_reset();
-  }
-  INFO("DHCP ok!");
-
-  INFO("Start NTP");
-  // В начале обновляем время до упора. 
-  datetime[0] = 'N';
-  datetime[1] = 'T';
-  datetime[2] = 'P';
+  datetime[0] = 'G';
+  datetime[1] = 'P';
+  datetime[2] = 'S';
   datetime[3] = '\0';
   print_IV_9();
+
+  GPS_SoftSerial.begin(SOFT_GPS_BAUD_RATE);
+  rtc.setDeltaT(SOFT_RTC_DELTA_T);
+
+  while(GPS_SoftSerial.available() > 0)
+  {
+      ATGM332D.encode(GPS_SoftSerial.read());
+      wdt_reset();
+  }
+
+  while(!adjustTime(getGMTOffset()))
+  {
+    while(GPS_SoftSerial.available() > 0)
+    {
+      ATGM332D.encode(GPS_SoftSerial.read());
+      wdt_reset();
+    }
+    DEBUG("year=", ATGM332D.date.year());
+    DEBUG("time=", ATGM332D.time.value());
+  }
+
   while(!adjustTime(getGMTOffset()))
   {
     wdt_reset();
+    DEBUG("year=", ATGM332D.date.year());
+    DEBUG("time=", ATGM332D.time.value());
   }
-  INFO("NTP ok!");
+  INFO("GPS ok!");
 
   wdt_reset();
   calculateBrightness();
@@ -115,14 +121,14 @@ void loop()
   bool minRefreshFlag = true;
   bool dotRefreshFlag = true;
   Timer16 clockTimer(500);
-  
-  // Это время в минутах, прибавляемое к периоду обновления NTP, 
-  // чтобы девайсы не дёргали NTP сервер одновременно.
-  uint8_t minAdd = (uint8_t)map((uint32_t &)GUID0, 0, 0xFFFFFFFF, 1, 10);
 
   for(;;)
   {
     wdt_reset();
+
+    // Время с датчика надо брать постоянно, чтобы не переполнился буфер
+    while(GPS_SoftSerial.available() > 0)
+      ATGM332D.encode(GPS_SoftSerial.read());
     
     if(clockTimer.ready())
     {
@@ -153,7 +159,8 @@ void loop()
       DEBUG("Dots Brightness   = ", Brightness.dots);
     }
 
-    if(minute % (3 + minAdd)) 
+    //Каждые 2 минуты подводим часы
+    if(minute % (2)) 
     {
       if(minRefreshFlag)
       {
@@ -191,15 +198,32 @@ void print_IV_9()
   digitalWrite(LATCH, HIGH);
 }
 
-// Подводит время по NTP
+// Подводит время по GPS
 bool adjustTime(uint32_t GMTSecondsOffset)
 {
   wdt_reset();
-  
-  if(timeClient.update())
+
+  while(GPS_SoftSerial.available() > 0)
   {
-    timeClient.setTimeOffset(GMTSecondsOffset);
-    RtcDateTime dt(timeClient.getEpochTime() - UNIX_2000_OFFSET);
+      ATGM332D.encode(GPS_SoftSerial.read());
+      wdt_reset();
+  }
+  
+  if(GPS_TIME_IS_VALID())
+  {
+    RtcDateTime dt
+    (
+      //atoi(ATGM332D_year.value()), 
+      //atoi(ATGM332D_month.value()), 
+      //atoi(ATGM332D_day.value()), 
+      ATGM332D.date.year(), 
+      ATGM332D.date.month(),
+      ATGM332D.date.day(),
+      ATGM332D.time.hour(), 
+      ATGM332D.time.minute(),
+      ATGM332D.time.second() 
+    );
+    dt += GMTSecondsOffset;
     rtc.stopRTC();
       rtc.setDate(dt.Day(), dt.Month(), dt.Year());
       rtc.setTime(dt.Hour(), dt.Minute(), dt.Second());
