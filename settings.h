@@ -17,13 +17,13 @@
 #define DOTS_DEFAULT_BRIGHTNESS_EEPROM_ADDRESS (uint16_t)5
 #define DEFAULT_IP_ADDRESS_ADDRESS (uint16_t)6
 #define DEFAULT_IP_ADDRESS 0x0101A8C0UL //192.168.1.1
-#define DEFAULT_BRIGHTNESS 60 
-#define NIGHT_BRIGHTNESS 75
+#define DEFAULT_BRIGHTNESS 25 
+#define NIGHT_BRIGHTNESS 27
 #define DOTS_DAY_BRIGHTNESS 100
 #define DOTS_NIGHT_BRIGHTNESS 75
 #define DOTS_OFF 0
 #define INIT_ADDR 512  // номер резервной ячейки
-#define INIT_KEY 67     // ключ первого запуска. 0-254, на выбор
+#define INIT_KEY 68     // ключ первого запуска. 0-254, на выбор
 #define SOFT_GPS_BAUD_RATE 9600
 #define SOFT_RTC_DELTA_T 1210
 
